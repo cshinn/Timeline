@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="bower_components/patternfly/dist/css/patternfly.min.css" />
+    <link rel="stylesheet" href="bower_components/patternfly/dist/css/patternfly-additions.min.css" />
+    <link rel="stylesheet" href="bower_components/patternfly/components/c3/c3.css" media="all">
+    
+    <script src="bower_components/patternfly/components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/patternfly/components/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="bower_components/patternfly/components/bootstrap-select/dist/js/bootstrap-select.js"></script>
+    <script src="bower_components/patternfly/components/bootstrap-datepicker/dist/js/bootstrap-datepicker.js"></script>
+    <script src="bower_components/patternfly/components/bootstrap-combobox/js/bootstrap-combobox.js"></script>
+    <script src="bower_components/patternfly/components/d3/d3.min.js"></script>
+    <script src="bower_components/patternfly/components/c3/c3.min.js"></script>
+    <script src="bower_components/EventDrops/src/eventDrops.js"></script>
+    <script src="bower_components/patternfly/dist/js/patternfly.js"></script>
+  </head>
+  <style>
+   .zoom {
+    fill: transparent;
+    cursor: pointer;
+    }
+    
+    .y-axis path,
+    .y-axis line,
+    .x-axis path,
+    .x-axis line,
+    {
+      path,
+      line {
+          stroke: black;
+          fill: none;
+          stroke-width: 1px;
+      }
+    }
+    
+    .y-axis g line {
+        stroke: grey;
+        fill: none;
+        stroke-width: 1px;
+    }
+    
+    .graph-body .line circle {
+        opacity: 0.5;
+    }
+    
+  </style>
+  <body>
+    <div class="container">
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <div id="chart_placeholder"></div>
+      <div style="text-align: center" id="legend"></div>
+      <button onclick="eventDropsChart(element)">Reset zoom</button>
+    </div>
+  </body>
+  <script>
+    var today = new Date();
+    var names = ["Reverse Proxy hits", "Server requests", "SQL queries", "Cache invalidations", "Cache miss", "Builds", "Websocket messages", "API calls", "Autoscaling", "Incidents", "Explosions", "Ends of the world"];
+    var data = [];
+            var endTime = Date.now();
+            var oneMonth = 30 * 24 * 60 * 60 * 1000;
+            var startTime = endTime - oneMonth;
+            var middleTime = startTime + ((endTime - startTime) / 2);
+
+            function createEvent (name) {
+                var event = {};
+                event.name = name;
+                event.dates = [];
+                event.data = [];
+
+                var max =  Math.floor(Math.random() * 200);
+                for (var j = 0; j < max; j++) {
+                    var time = Math.floor((Math.random() * oneMonth)) + startTime;
+                    event.dates.push(new Date(time));
+                    event.data.push(j);
+                }
+
+                return event;
+            }
+
+            for (var i = 0; i < 5; i++) {
+                data.push(createEvent(names[i]));
+            }
+
+    var eventDropsChart = d3.chart.eventDrops()
+      .start(new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000)))
+      .end(new Date(today.getTime() + (1 * 24 * 60 * 60 * 1000)))
+      .minScale(0.05)
+      .maxScale(100)
+      .hasTopAxis(false)
+      .eventLineColor(function (data, index) {
+                    switch (data.name) {
+                      case names[0]:
+                          return "#0088ce";
+                          break;
+                      case names[1]:
+                          return "#00659c";
+                          break;
+                      case names[2]:
+                          return "#3f9c35";
+                          break;
+                      case names[3]:
+                          return "#ec7a08";
+                          break;
+                      case names[4]:
+                          return "#cc0000";
+                          break;
+                    }
+                })
+      .eventHover(function(el) {
+                    var series = el.parentNode.firstChild.innerHTML;
+                    var timestamp = d3.select(el).data()[0];
+                    document.getElementById('legend').innerHTML = 'Hovering [' + timestamp + '] in series "' + series + '"';
+                })
+      .hasBottomAxis(true);
+          
+      var element = d3.select(chart_placeholder).append('div').datum(data);
+      eventDropsChart(element);
+     
+  </script>
+</html>
